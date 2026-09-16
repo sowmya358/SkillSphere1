@@ -1,0 +1,267 @@
+/* ==========================================================
+   SkillSphere - Basic Stylesheet
+   Keep it simple: colors, spacing, readable fonts, cards.
+   ========================================================== */
+
+/* Reset default spacing so layout is predictable */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #222;
+    line-height: 1.6;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2f6feb;
+    padding: 1rem 2rem;
+    flex-wrap: wrap;
+}
+
+.navbar .logo {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar nav a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 1.5rem;
+    font-weight: 500;
+}
+
+.navbar nav a:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Hero Section (Landing Page) ---------- */
+.hero {
+    text-align: center;
+    padding: 4rem 1.5rem 2rem;
+}
+
+.hero h1 {
+    font-size: 2.8rem;
+    color: #2f6feb;
+}
+
+.tagline {
+    font-size: 1.3rem;
+    color: #555;
+    margin-top: 0.5rem;
+}
+
+.hero-description {
+    max-width: 600px;
+    margin: 1.5rem auto;
+    color: #444;
+}
+
+.hero-buttons {
+    margin-top: 1.5rem;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+    display: inline-block;
+    padding: 0.7rem 1.6rem;
+    margin: 0.4rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: #2f6feb;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #1d4fc4;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: #2f6feb;
+    border: 2px solid #2f6feb;
+}
+
+.btn-secondary:hover {
+    background-color: #eaf0ff;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- Info Cards (Landing Page) ---------- */
+.info-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 300px;
+    flex: 1 1 250px;
+}
+
+.card h3 {
+    color: #2f6feb;
+    margin-bottom: 0.6rem;
+}
+
+/* ---------- Forms (Login / Register) ---------- */
+.form-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1rem;
+}
+
+.form-container {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+}
+
+.form-container h2 {
+    text-align: center;
+    color: #2f6feb;
+    margin-bottom: 1.5rem;
+}
+
+.form-container label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 0.3rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.form-container input:focus {
+    outline: none;
+    border-color: #2f6feb;
+}
+
+.form-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.form-link {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.form-link a {
+    color: #2f6feb;
+    text-decoration: none;
+}
+
+.form-link a:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Dashboard ---------- */
+.dashboard {
+    padding: 2rem 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.welcome-banner {
+    margin-bottom: 1.5rem;
+}
+
+.welcome-banner h1 {
+    color: #2f6feb;
+}
+
+.profile-section {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.dashboard-box ul {
+    list-style: none;
+    margin-top: 0.5rem;
+}
+
+.dashboard-box ul li {
+    background: #eaf0ff;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-box h3 {
+    color: #2f6feb;
+    margin-bottom: 0.6rem;
+}
+
+.dashboard-box p {
+    margin-bottom: 0.8rem;
+    color: #555;
+}
+
+/* ---------- Footer ---------- */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .navbar nav a {
+        margin: 0.3rem 0.7rem;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+}
