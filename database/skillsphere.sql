@@ -94,7 +94,7 @@ CREATE TABLE admins (
 -- Sample data (only for testing Step 2's connection)
 -- ----------------------------------------------------------
 INSERT INTO users (name, email, password, bio, credits)
-VALUES ('Test User', 'testuser@example.com', 'testpass123', 'Just a sample account for testing.', 10);
+VALUES ('Test User', 'testuser@example.com', 'testpass123', 'Just a sample account for testing.', 100);
 
 INSERT INTO admins (username, password)
 VALUES ('admin', 'admin123');
