@@ -18,21 +18,38 @@ if (loginForm) {
 // Handle Register form submission (placeholder only)
 const registerForm = document.getElementById("registerForm");
 if (registerForm) {
-    registerForm.addEventListener("submit", function (e) {
+    registerForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
+        const fullname = document.getElementById("fullname").value;
+        const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
 
-        // Simple client-side check just for user experience, not real validation
         if (password !== confirmPassword) {
             alert("Passwords do not match. Please try again.");
             return;
         }
 
-        // In a later step, this will send data to the backend to create an account.
-        alert("Registration functionality will be added in a later development step.");
-        window.location.href = "login.html";
+        // Send the data to the Java backend running on localhost:8080
+        try {
+            const response = await fetch("http://localhost:8080/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ fullname, email, password })
+            });
+
+            const resultText = await response.text();
+
+            if (response.ok) {
+                alert(resultText);
+                window.location.href = "login.html";
+            } else {
+                alert(resultText);
+            }
+        } catch (error) {
+            alert("Could not reach the server. Make sure RegisterServer.java is running.");
+        }
     });
 }
 
