@@ -93,6 +93,61 @@ public class SkillDAO {
         }
     }
 
+        // Searches skills offered by OTHER users and ranks them with simple rules:
+    //   exact name 100, name starts with 70, name contains 50,
+    //   category contains 30, description contains 10.
+    // Ties are broken by the teacher's average review rating.
+    public List<SkillMatch> searchSkills(String keyword, int excludeUserId) throws SQLException {
+        String kw = (keyword == null) ? "" : keyword.trim().toLowerCase();
+        // Escape LIKE wildcards so a typed % or _ is treated as plain text
+        String safe = kw.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        String starts = safe + "%";
+        String contains = "%" + safe + "%";
+
+        String sql = "SELECT s.skill_id, s.user_id, u.name AS teacher_name, "
+                + "s.skill_name, s.category, s.description, "
+                + "(SELECT AVG(r.rating) FROM reviews r WHERE r.reviewed_user_id = s.user_id) AS avg_rating, "
+                + "(CASE WHEN LOWER(s.skill_name) = ? THEN 100 "
+                + "      WHEN LOWER(s.skill_name) LIKE ? THEN 70 "
+                + "      WHEN LOWER(s.skill_name) LIKE ? THEN 50 "
+                + "      WHEN LOWER(s.category) LIKE ? THEN 30 "
+                + "      WHEN LOWER(s.description) LIKE ? THEN 10 "
+                + "      ELSE 0 END) AS score "
+                + "FROM skills s JOIN users u ON u.user_id = s.user_id "
+                + "WHERE s.user_id <> ? "
+                + "AND (LOWER(s.skill_name) LIKE ? OR LOWER(s.category) LIKE ? OR LOWER(s.description) LIKE ?) "
+                + "ORDER BY score DESC, avg_rating DESC, s.skill_id "
+                + "LIMIT 50";
+
+        List<SkillMatch> list = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, kw);
+            stmt.setString(2, starts);
+            stmt.setString(3, contains);
+            stmt.setString(4, contains);
+            stmt.setString(5, contains);
+            stmt.setInt(6, excludeUserId);
+            stmt.setString(7, contains);
+            stmt.setString(8, contains);
+            stmt.setString(9, contains);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    double rating = rs.getDouble("avg_rating");
+                    Double avg = rs.wasNull() ? null : rating;
+                    list.add(new SkillMatch(
+                            rs.getInt("skill_id"), rs.getInt("user_id"),
+                            rs.getString("teacher_name"), rs.getString("skill_name"),
+                            rs.getString("category"), rs.getString("description"),
+                            avg, rs.getInt("score")));
+                }
+            }
+        }
+        return list;
+    }
+    
     // Null-safe trim for optional fields
     private String clean(String s) {
         return (s == null) ? "" : s.trim();

@@ -55,10 +55,13 @@
                 </ul>
             </div>
 
-            <div class="dashboard-box card">
+                       <div class="dashboard-box card">
                 <h3>Find Skills</h3>
-                <p>Search for skills offered by other students.</p>
-                <button class="btn btn-secondary" disabled>Search (Coming Soon)</button>
+                <form id="searchForm">
+                    <input type="text" id="searchKeyword" placeholder="Search skills (empty = show all)">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+                <ul id="searchResults"></ul>
             </div>
 
             <div class="dashboard-box card">

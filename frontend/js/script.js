@@ -237,3 +237,61 @@ if (skillList && skillForm) {
     // is logged in, so only load skills when we have a user.
     if (currentUser) loadSkills();
 }
+// ---------- Find Skills: search + rule-based ranking ----------
+const searchForm = document.getElementById("searchForm");
+const searchResults = document.getElementById("searchResults");
+
+if (searchForm && searchResults) {
+    const savedSearchUser = sessionStorage.getItem("user");
+    const searchUser = savedSearchUser ? JSON.parse(savedSearchUser) : null;
+
+    searchForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (!searchUser) return;
+
+        const submitBtn = searchForm.querySelector("button[type='submit']");
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(API_URL + "/api/skills/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    userId: searchUser.userId,
+                    keyword: document.getElementById("searchKeyword").value.trim()
+                })
+            });
+
+            if (!response.ok) {
+                alert(await response.text());
+                return;
+            }
+
+            const results = await response.json();
+            searchResults.innerHTML = "";
+
+            if (results.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "No matching skills found.";
+                searchResults.appendChild(li);
+                return;
+            }
+
+            results.forEach(function (r) {
+                const li = document.createElement("li");
+                // textContent keeps user-entered text from injecting HTML
+                let text = r.name;
+                if (r.category) text += " (" + r.category + ")";
+                text += " - taught by " + r.teacherName;
+                text += r.rating === null ? " - no ratings yet" : " - rating " + r.rating + "/5";
+                if (r.match) text += " [" + r.match + "]";
+                li.textContent = text;
+                searchResults.appendChild(li);
+            });
+        } catch (error) {
+            alert("Could not reach the server. Make sure RegisterServer is running.");
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+}

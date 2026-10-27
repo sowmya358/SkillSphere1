@@ -26,6 +26,7 @@ public class RegisterServer {
         server.createContext("/api/skills/add", new SkillHandlers.ActionHandler("add"));
         server.createContext("/api/skills/update", new SkillHandlers.ActionHandler("update"));
         server.createContext("/api/skills/delete", new SkillHandlers.ActionHandler("delete"));
+                server.createContext("/api/skills/search", new SkillHandlers.SearchHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("SkillSphere backend running at http://localhost:8080");

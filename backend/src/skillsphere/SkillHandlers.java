@@ -1,9 +1,9 @@
 package skillsphere;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 // HTTP endpoints for skill management:
@@ -94,6 +94,59 @@ public class SkillHandlers {
                 e.printStackTrace();
                 RegisterServer.sendResponse(exchange, 500, "text/plain", "ERROR: Something went wrong on the server");
             }
+        }
+    }
+        // ---------- /api/skills/search ----------
+    //   POST /api/skills/search  (userId, keyword)
+    static class SearchHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            try {
+                if (RegisterServer.handlePreflightAndMethod(exchange)) return;
+                Map<String, String> p = RegisterServer.readForm(exchange);
+
+                int userId = Integer.parseInt(p.get("userId"));
+                List<SkillMatch> results = new SkillDAO().searchSkills(p.get("keyword"), userId);
+
+                StringBuilder json = new StringBuilder("[");
+                for (int i = 0; i < results.size(); i++) {
+                    SkillMatch m = results.get(i);
+                    if (i > 0) json.append(",");
+                    String rating = (m.getAvgRating() == null)
+                            ? "null" : String.format(Locale.US, "%.1f", m.getAvgRating());
+                    json.append("{")
+                        .append("\"skillId\":").append(m.getSkillId()).append(",")
+                        .append("\"teacherId\":").append(m.getTeacherId()).append(",")
+                        .append("\"teacherName\":\"").append(RegisterServer.jsonEscape(m.getTeacherName())).append("\",")
+                        .append("\"name\":\"").append(RegisterServer.jsonEscape(m.getName())).append("\",")
+                        .append("\"category\":\"").append(RegisterServer.jsonEscape(m.getCategory())).append("\",")
+                        .append("\"description\":\"").append(RegisterServer.jsonEscape(m.getDescription())).append("\",")
+                        .append("\"rating\":").append(rating).append(",")
+                        .append("\"match\":\"").append(matchLabel(m.getScore())).append("\"")
+                        .append("}");
+                }
+                json.append("]");
+                RegisterServer.sendResponse(exchange, 200, "application/json", json.toString());
+
+            } catch (NumberFormatException e) {
+                RegisterServer.sendResponse(exchange, 400, "text/plain", "FAILED: Invalid user");
+            } catch (java.sql.SQLException e) {
+                System.out.println("Error searching skills: " + e.getMessage());
+                RegisterServer.sendResponse(exchange, 500, "text/plain",
+                        "ERROR: Server could not search skills. Check the backend console.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                RegisterServer.sendResponse(exchange, 500, "text/plain", "ERROR: Something went wrong on the server");
+            }
+        }
+
+        private String matchLabel(int score) {
+            if (score >= 100) return "Exact match";
+            if (score >= 70) return "Starts with";
+            if (score >= 50) return "Name match";
+            if (score >= 30) return "Category match";
+            if (score >= 10) return "Description match";
+            return "";
         }
     }
 }
