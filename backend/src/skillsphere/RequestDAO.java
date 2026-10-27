@@ -6,6 +6,7 @@ import java.util.List;
 
 // DAO for the "exchange_requests" table.
 public class RequestDAO {
+        private static final int SESSION_COST = 10;   // credits per completed session
 
     // Learner asks for a skill. Returns "SUCCESS: ...", "FAILED: ..." or "ERROR: ..."
     public String createRequest(int skillId, int learnerId) {
@@ -101,6 +102,79 @@ public class RequestDAO {
         } catch (SQLException e) {
             System.out.println("Error answering request: " + e.getMessage());
             return "ERROR: Server could not update the request. Check the backend console.";
+        }
+    }
+        // Teacher marks an ACCEPTED request as completed.
+    // Moves SESSION_COST credits learner -> teacher in ONE transaction.
+    public String completeSession(int requestId, int teacherId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Lock the request row and check it is ours and still ACCEPTED
+                int learnerId;
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT learner_id FROM exchange_requests "
+                      + "WHERE request_id = ? AND teacher_id = ? AND status = 'ACCEPTED' FOR UPDATE")) {
+                    stmt.setInt(1, requestId);
+                    stmt.setInt(2, teacherId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return "FAILED: Request not found or not in accepted state";
+                        }
+                        learnerId = rs.getInt("learner_id");
+                    }
+                }
+
+                // 2. Take credits from the learner (only if they have enough)
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE users SET credits = credits - ? WHERE user_id = ? AND credits >= ?")) {
+                    stmt.setInt(1, SESSION_COST);
+                    stmt.setInt(2, learnerId);
+                    stmt.setInt(3, SESSION_COST);
+                    if (stmt.executeUpdate() == 0) {
+                        conn.rollback();
+                        return "FAILED: The learner does not have enough credits";
+                    }
+                }
+
+                // 3. Give credits to the teacher
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE users SET credits = credits + ? WHERE user_id = ?")) {
+                    stmt.setInt(1, SESSION_COST);
+                    stmt.setInt(2, teacherId);
+                    stmt.executeUpdate();
+                }
+
+                // 4. Mark the request completed
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE exchange_requests SET status = 'COMPLETED' WHERE request_id = ?")) {
+                    stmt.setInt(1, requestId);
+                    stmt.executeUpdate();
+                }
+
+                conn.commit();
+                return "SUCCESS: Session completed. " + SESSION_COST + " credits transferred";
+
+            } catch (SQLException e) {
+                conn.rollback();   // undo everything if any step failed
+                throw e;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error completing session: " + e.getMessage());
+            return "ERROR: Server could not complete the session. Check the backend console.";
+        }
+    }
+
+    // Current credit balance of a user, or -1 if the user does not exist
+    public int getCredits(int userId) throws SQLException {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT credits FROM users WHERE user_id = ?")) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getInt("credits") : -1;
+            }
         }
     }
 }

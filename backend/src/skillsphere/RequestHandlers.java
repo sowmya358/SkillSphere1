@@ -112,4 +112,55 @@ public class RequestHandlers {
             }
         }
     }
+        // ---------- /api/requests/complete ----------
+    //   POST (userId = the teacher, requestId)
+    static class CompleteHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            try {
+                if (RegisterServer.handlePreflightAndMethod(exchange)) return;
+                Map<String, String> p = RegisterServer.readForm(exchange);
+
+                int userId = Integer.parseInt(p.get("userId"));
+                int requestId = Integer.parseInt(p.get("requestId"));
+                sendResult(exchange, new RequestDAO().completeSession(requestId, userId));
+
+            } catch (NumberFormatException e) {
+                RegisterServer.sendResponse(exchange, 400, "text/plain", "FAILED: Invalid user or request");
+            } catch (Exception e) {
+                e.printStackTrace();
+                RegisterServer.sendResponse(exchange, 500, "text/plain", "ERROR: Something went wrong on the server");
+            }
+        }
+    }
+
+    // ---------- /api/credits ----------
+    //   POST (userId)  ->  plain number, e.g. 110
+    static class CreditsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            try {
+                if (RegisterServer.handlePreflightAndMethod(exchange)) return;
+                Map<String, String> p = RegisterServer.readForm(exchange);
+
+                int userId = Integer.parseInt(p.get("userId"));
+                int credits = new RequestDAO().getCredits(userId);
+                if (credits < 0) {
+                    RegisterServer.sendResponse(exchange, 400, "text/plain", "FAILED: User not found");
+                } else {
+                    RegisterServer.sendResponse(exchange, 200, "text/plain", String.valueOf(credits));
+                }
+
+            } catch (NumberFormatException e) {
+                RegisterServer.sendResponse(exchange, 400, "text/plain", "FAILED: Invalid user");
+            } catch (java.sql.SQLException e) {
+                System.out.println("Error loading credits: " + e.getMessage());
+                RegisterServer.sendResponse(exchange, 500, "text/plain",
+                        "ERROR: Server could not load credits. Check the backend console.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                RegisterServer.sendResponse(exchange, 500, "text/plain", "ERROR: Something went wrong on the server");
+            }
+        }
+    }
 }

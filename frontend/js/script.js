@@ -384,6 +384,13 @@ function renderRequests(listEl, items, isIncoming) {
             li.appendChild(acceptBtn);
             li.appendChild(rejectBtn);
         }
+                if (isIncoming && r.status === "ACCEPTED") {
+            const completeBtn = document.createElement("button");
+            completeBtn.textContent = "Mark Completed";
+            completeBtn.className = "btn btn-primary";
+            completeBtn.addEventListener("click", function () { completeRequest(r.requestId); });
+            li.appendChild(completeBtn);
+        }
         listEl.appendChild(li);
     });
 }
@@ -401,3 +408,39 @@ async function loadRequests() {
 }
 
 loadRequests();
+// ---------- Complete a session + keep the credit balance fresh ----------
+async function completeRequest(requestId) {
+    const user = getRequestUser();
+    if (!user) return;
+    if (!confirm("Mark this session as completed? Credits will be transferred.")) return;
+    try {
+        const response = await postRequestForm("/api/requests/complete",
+                { userId: user.userId, requestId: requestId });
+        alert(await response.text());
+        loadRequests();
+        refreshCredits();
+    } catch (error) {
+        alert("Could not reach the server. Make sure RegisterServer is running.");
+    }
+}
+
+// Asks the server for the real balance, saves it in sessionStorage
+// and updates the credits shown on the dashboard.
+async function refreshCredits() {
+    const user = getRequestUser();
+    if (!user) return;
+    try {
+        const response = await postRequestForm("/api/credits", { userId: user.userId });
+        if (!response.ok) return;
+        user.credits = parseInt(await response.text(), 10);
+        sessionStorage.setItem("user", JSON.stringify(user));
+
+        // CHANGE "userCredits" to the id of the element that shows credits on your dashboard
+        const creditsEl = document.getElementById("userCredits");
+        if (creditsEl) creditsEl.textContent = user.credits;
+    } catch (error) {
+        // ignore: the old balance just stays on screen
+    }
+}
+
+refreshCredits();
