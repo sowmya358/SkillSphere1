@@ -22,6 +22,10 @@ public class RegisterServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.createContext("/api/register", new RegisterHandler());
         server.createContext("/api/login", new LoginHandler());
+                server.createContext("/api/skills/list", new SkillHandlers.ListHandler());
+        server.createContext("/api/skills/add", new SkillHandlers.ActionHandler("add"));
+        server.createContext("/api/skills/update", new SkillHandlers.ActionHandler("update"));
+        server.createContext("/api/skills/delete", new SkillHandlers.ActionHandler("delete"));
         server.setExecutor(null);
         server.start();
         System.out.println("SkillSphere backend running at http://localhost:8080");
@@ -104,7 +108,7 @@ public class RegisterServer {
 
     // Adds CORS headers, approves OPTIONS preflight, rejects non-POST.
     // Returns true if the request was already answered (caller should stop).
-    private static boolean handlePreflightAndMethod(HttpExchange exchange) throws IOException {
+    static boolean handlePreflightAndMethod(HttpExchange exchange) throws IOException {
         // Allow the browser (opened as a local file) to call this server
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -123,7 +127,7 @@ public class RegisterServer {
         return false;
     }
 
-    private static Map<String, String> readForm(HttpExchange exchange) throws IOException {
+     static Map<String, String> readForm(HttpExchange exchange) throws IOException {
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         return parseFormData(body);
@@ -143,13 +147,13 @@ public class RegisterServer {
         return map;
     }
 
-    private static String jsonEscape(String s) {
+     static String jsonEscape(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"")
                 .replace("\n", "\\n").replace("\r", "\\r");
     }
 
-    private static void sendResponse(HttpExchange exchange, int statusCode,
+     static void sendResponse(HttpExchange exchange, int statusCode,
                                      String contentType, String message) throws IOException {
         byte[] responseBytes = message.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", contentType + "; charset=UTF-8");
