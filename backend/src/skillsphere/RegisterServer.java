@@ -34,7 +34,11 @@ public class RegisterServer {
         server.createContext("/api/requests/reject", new RequestHandlers.RespondHandler(false));
         server.createContext("/api/requests/complete", new RequestHandlers.CompleteHandler());
         server.createContext("/api/credits", new RequestHandlers.CreditsHandler());
-                server.createContext("/api/reviews/create", new ReviewHandlers.CreateHandler());
+        server.createContext("/api/reviews/create", new ReviewHandlers.CreateHandler());
+        server.createContext("/api/admin/login", new AdminHandlers.LoginHandler());
+        server.createContext("/api/admin/users", new AdminHandlers.DataHandler("users"));
+        server.createContext("/api/admin/skills/delete", new AdminHandlers.DataHandler("deleteSkill"));
+        server.createContext("/api/admin/skills", new AdminHandlers.DataHandler("skills"));
         server.setExecutor(null);
         server.start();
         System.out.println("SkillSphere backend running at http://localhost:8080");
