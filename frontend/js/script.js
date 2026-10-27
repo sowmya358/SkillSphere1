@@ -277,7 +277,7 @@ if (searchForm && searchResults) {
                 return;
             }
 
-            results.forEach(function (r) {
+                results.forEach(function (r) {
                 const li = document.createElement("li");
                 // textContent keeps user-entered text from injecting HTML
                 let text = r.name;
@@ -285,7 +285,14 @@ if (searchForm && searchResults) {
                 text += " - taught by " + r.teacherName;
                 text += r.rating === null ? " - no ratings yet" : " - rating " + r.rating + "/5";
                 if (r.match) text += " [" + r.match + "]";
-                li.textContent = text;
+                li.textContent = text + " ";
+
+                const requestBtn = document.createElement("button");
+                requestBtn.textContent = "Request";
+                requestBtn.className = "btn btn-secondary";
+                requestBtn.addEventListener("click", function () { sendRequest(r.skillId); });
+
+                li.appendChild(requestBtn);
                 searchResults.appendChild(li);
             });
         } catch (error) {
@@ -295,3 +302,102 @@ if (searchForm && searchResults) {
         }
     });
 }
+// ---------- Exchange requests: send, list, accept / reject ----------
+const incomingList = document.getElementById("incomingRequests");
+const outgoingList = document.getElementById("outgoingRequests");
+
+function getRequestUser() {
+    const saved = sessionStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+}
+
+async function postRequestForm(path, data) {
+    return fetch(API_URL + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(data)
+    });
+}
+
+// Called by the Request button in the search results
+async function sendRequest(skillId) {
+    const user = getRequestUser();
+    if (!user) return;
+    try {
+        const response = await postRequestForm("/api/requests/create",
+                { userId: user.userId, skillId: skillId });
+        alert(await response.text());
+        if (response.ok) loadRequests();
+    } catch (error) {
+        alert("Could not reach the server. Make sure RegisterServer is running.");
+    }
+}
+
+async function answerRequest(requestId, action) {   // action = "accept" or "reject"
+    const user = getRequestUser();
+    if (!user) return;
+    try {
+        const response = await postRequestForm("/api/requests/" + action,
+                { userId: user.userId, requestId: requestId });
+        if (!response.ok) alert(await response.text());
+        loadRequests();
+    } catch (error) {
+        alert("Could not reach the server. Make sure RegisterServer is running.");
+    }
+}
+
+async function fetchRequests(path) {
+    const user = getRequestUser();
+    const response = await postRequestForm(path, { userId: user.userId });
+    if (!response.ok) {
+        alert(await response.text());
+        return null;
+    }
+    return response.json();
+}
+
+function renderRequests(listEl, items, isIncoming) {
+    listEl.innerHTML = "";
+    if (items.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No requests yet.";
+        listEl.appendChild(li);
+        return;
+    }
+    items.forEach(function (r) {
+        const li = document.createElement("li");
+        let text = r.skillName + (isIncoming ? " - requested by " : " - taught by ")
+                 + r.otherName + " [" + r.status + "] " + r.createdAt;
+        li.textContent = text + " ";
+
+        if (isIncoming && r.status === "PENDING") {
+            const acceptBtn = document.createElement("button");
+            acceptBtn.textContent = "Accept";
+            acceptBtn.className = "btn btn-primary";
+            acceptBtn.addEventListener("click", function () { answerRequest(r.requestId, "accept"); });
+
+            const rejectBtn = document.createElement("button");
+            rejectBtn.textContent = "Reject";
+            rejectBtn.className = "btn btn-secondary";
+            rejectBtn.addEventListener("click", function () { answerRequest(r.requestId, "reject"); });
+
+            li.appendChild(acceptBtn);
+            li.appendChild(rejectBtn);
+        }
+        listEl.appendChild(li);
+    });
+}
+
+async function loadRequests() {
+    if (!incomingList || !outgoingList || !getRequestUser()) return;
+    try {
+        const incoming = await fetchRequests("/api/requests/incoming");
+        if (incoming) renderRequests(incomingList, incoming, true);
+        const outgoing = await fetchRequests("/api/requests/outgoing");
+        if (outgoing) renderRequests(outgoingList, outgoing, false);
+    } catch (error) {
+        alert("Could not reach the server. Make sure RegisterServer is running.");
+    }
+}
+
+loadRequests();
