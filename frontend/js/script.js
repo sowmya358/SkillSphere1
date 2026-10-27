@@ -1,28 +1,57 @@
 // ==========================================================
-// SkillSphere - Basic JavaScript
-// Step 1: No real backend/auth yet. This just gives a smooth
-// front-end experience (form handling, logout redirect).
+// SkillSphere - JavaScript
+// Register and Login are connected to the Java backend (localhost:8080).
+// The logged-in user is remembered in sessionStorage until logout
+// or until the browser tab is closed.
 // ==========================================================
 
-// Handle Login form submission (placeholder only)
+const API_URL = "http://localhost:8080";
+
+// ---------- Login (REAL) ----------
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
-    loginForm.addEventListener("submit", function (e) {
-        e.preventDefault(); // stop the page from reloading
-        // In a later step, this will send data to the backend for real authentication.
-        alert("Login functionality will be added in a later development step.");
-        window.location.href = "dashboard.html"; // temporarily go to dashboard
+    loginForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        // Disable the button so the form is not submitted twice
+        const submitBtn = loginForm.querySelector("button[type='submit']");
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(API_URL + "/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ email, password })
+            });
+
+            if (response.ok) {
+                // Backend returns JSON: { userId, name, email, credits }
+                const user = await response.json();
+                sessionStorage.setItem("user", JSON.stringify(user));
+                window.location.href = "dashboard.html";
+            } else {
+                // 401 = wrong email/password, 500 = server/database problem
+                alert(await response.text());
+            }
+        } catch (error) {
+            alert("Could not reach the server. Make sure RegisterServer is running.");
+        } finally {
+            submitBtn.disabled = false;
+        }
     });
 }
 
-// Handle Register form submission (placeholder only)
+// ---------- Register (REAL) ----------
 const registerForm = document.getElementById("registerForm");
 if (registerForm) {
     registerForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const fullname = document.getElementById("fullname").value;
-        const email = document.getElementById("email").value;
+        const fullname = document.getElementById("fullname").value.trim();
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
 
@@ -31,33 +60,53 @@ if (registerForm) {
             return;
         }
 
-        // Send the data to the Java backend running on localhost:8080
+        const submitBtn = registerForm.querySelector("button[type='submit']");
+        submitBtn.disabled = true;
+
         try {
-            const response = await fetch("http://localhost:8080/api/register", {
+            const response = await fetch(API_URL + "/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({ fullname, email, password })
             });
 
             const resultText = await response.text();
+            alert(resultText);
 
             if (response.ok) {
-                alert(resultText);
                 window.location.href = "login.html";
-            } else {
-                alert(resultText);
             }
         } catch (error) {
-            alert("Could not reach the server. Make sure RegisterServer.java is running.");
+            alert("Could not reach the server. Make sure RegisterServer is running.");
+        } finally {
+            submitBtn.disabled = false;
         }
     });
 }
 
-// Handle Logout button on dashboard (placeholder only)
+// ---------- Dashboard: show the real logged-in user ----------
+const welcomeName = document.getElementById("welcomeName");
+if (welcomeName) {
+    const savedUser = sessionStorage.getItem("user");
+
+    if (!savedUser) {
+        // Nobody is logged in, so send them to the login page
+        window.location.href = "login.html";
+    } else {
+        const user = JSON.parse(savedUser);
+        // textContent (not innerHTML) so a name can never inject HTML
+        welcomeName.textContent = user.name;
+        document.getElementById("profileName").textContent = user.name;
+        document.getElementById("profileEmail").textContent = user.email;
+        document.getElementById("profileCredits").textContent = user.credits;
+    }
+}
+
+// ---------- Logout: clear the saved user ----------
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
-        // In a later step, this will clear the user session.
-        // For now it just links back to index.html via the href in the HTML.
+        sessionStorage.removeItem("user");
+        // The link's href="index.html" then takes the user home
     });
 }
