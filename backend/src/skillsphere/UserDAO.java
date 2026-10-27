@@ -32,15 +32,13 @@ public class UserDAO {
     //   "SUCCESS: ..." -> account created
     //   "FAILED: ..."  -> the user's input was a problem (empty field, duplicate email)
     //   "ERROR: ..."   -> a server/database problem (wrong password, MySQL not running...)
-    public String registerUser(User user) {
+        public String registerUser(User user) {
+        // Validate the input first (name length, email format, password length)
+        String problem = Validator.checkRegistration(
+                user.getName(), user.getEmail(), user.getPassword());
+        if (problem != null) return problem;
 
-        // Basic validation before touching the database
-        if (user.getName() == null || user.getName().trim().isEmpty()
-                || user.getEmail() == null || user.getEmail().trim().isEmpty()
-                || user.getPassword() == null || user.getPassword().trim().isEmpty()) {
-            return "FAILED: Name, email and password are all required";
-        }
-
+        String name = user.getName().trim();
         String email = user.getEmail().trim().toLowerCase();
         String bio = (user.getBio() == null) ? "" : user.getBio();
         int startingCredits = 100; // every new user starts with 100 credits
@@ -54,7 +52,7 @@ public class UserDAO {
             }
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, user.getName().trim());
+                stmt.setString(1, name);
                 stmt.setString(2, email);
                 stmt.setString(3, PasswordUtil.hash(user.getPassword())); // hashed, never plain text
                 stmt.setString(4, bio);

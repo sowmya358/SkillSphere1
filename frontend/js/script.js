@@ -483,3 +483,12 @@ async function leaveReview(requestId) {
         alert("Could not reach the server. Make sure RegisterServer is running.");
     }
 }
+// ---------- Logout ----------
+const logoutLink = document.getElementById("logoutLink");
+if (logoutLink) {
+    logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        sessionStorage.removeItem("user");
+        window.location.href = "login.html";
+    });
+}
