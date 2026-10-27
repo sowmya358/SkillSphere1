@@ -12,7 +12,11 @@ import java.util.Properties;
 // a local file that is never pushed to GitHub (see .gitignore).
 public class DBConnection {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/skillsphere";
+    // The extra options after "?" avoid common MySQL 8 connection errors
+    // ("Public Key Retrieval is not allowed", SSL warnings, timezone errors).
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/skillsphere"
+            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String CONFIG_FILE = "db.properties";
 
     // Throws SQLException if the connection fails, so callers can handle it cleanly.
@@ -26,8 +30,9 @@ public class DBConnection {
                     + "(copy db.properties.example).");
         }
 
-        String username = props.getProperty("db.username", "root");
-        String password = props.getProperty("db.password", "");
+        // trim() removes accidental spaces at the end of a line in db.properties
+        String username = props.getProperty("db.username", "root").trim();
+        String password = props.getProperty("db.password", "").trim();
         return DriverManager.getConnection(URL, username, password);
     }
 

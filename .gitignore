@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Local database password file (never upload)
 backend/db.properties
 
@@ -9,3 +10,9 @@ backend/lib/*.jar
 .vscode/
 .DS_Store
 Thumbs.db
+=======
+
+backend/db.properties
+backend/out/
+backend/lib/*.jar
+>>>>>>> 89a3595 (Step 3: login with hashed passwords, sessionStorage, real dashboard)
