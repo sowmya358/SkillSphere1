@@ -34,6 +34,7 @@ public class RegisterServer {
         server.createContext("/api/requests/reject", new RequestHandlers.RespondHandler(false));
         server.createContext("/api/requests/complete", new RequestHandlers.CompleteHandler());
         server.createContext("/api/credits", new RequestHandlers.CreditsHandler());
+                server.createContext("/api/reviews/create", new ReviewHandlers.CreateHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("SkillSphere backend running at http://localhost:8080");

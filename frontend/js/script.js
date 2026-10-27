@@ -391,6 +391,19 @@ function renderRequests(listEl, items, isIncoming) {
             completeBtn.addEventListener("click", function () { completeRequest(r.requestId); });
             li.appendChild(completeBtn);
         }
+                if (r.status === "COMPLETED") {
+            if (r.rating !== null) {
+                li.appendChild(document.createTextNode(
+                        isIncoming ? "Learner rated you " + r.rating + "/5"
+                                   : "You rated " + r.rating + "/5"));
+            } else if (!isIncoming) {
+                const reviewBtn = document.createElement("button");
+                reviewBtn.textContent = "Leave Review";
+                reviewBtn.className = "btn btn-primary";
+                reviewBtn.addEventListener("click", function () { leaveReview(r.requestId); });
+                li.appendChild(reviewBtn);
+            }
+        }
         listEl.appendChild(li);
     });
 }
@@ -444,3 +457,29 @@ async function refreshCredits() {
 }
 
 refreshCredits();
+// ---------- Reviews ----------
+async function leaveReview(requestId) {
+    const user = getRequestUser();
+    if (!user) return;
+
+    const ratingText = prompt("Rate this session from 1 (poor) to 5 (excellent):");
+    if (ratingText === null) return; // cancelled
+    const rating = parseInt(ratingText, 10);
+    if (isNaN(rating) || rating < 1 || rating > 5) {
+        alert("Please enter a whole number from 1 to 5.");
+        return;
+    }
+    const comment = prompt("Optional comment (you can leave this empty):");
+    if (comment === null) return;
+
+    try {
+        const response = await postRequestForm("/api/reviews/create", {
+            userId: user.userId, requestId: requestId,
+            rating: rating, comment: comment
+        });
+        alert(await response.text());
+        loadRequests();
+    } catch (error) {
+        alert("Could not reach the server. Make sure RegisterServer is running.");
+    }
+}

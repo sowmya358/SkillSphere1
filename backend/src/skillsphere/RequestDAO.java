@@ -58,11 +58,15 @@ public class RequestDAO {
 
     // incoming = true  -> requests TO this user (as teacher), shows the learner's name
     // incoming = false -> requests FROM this user (as learner), shows the teacher's name
+        // incoming = true  -> requests TO this user (as teacher), shows the learner's name
+    // incoming = false -> requests FROM this user (as learner), shows the teacher's name
     public List<ExchangeRequest> getRequests(int userId, boolean incoming) throws SQLException {
-        String sql = "SELECT r.request_id, s.skill_name, u.name AS other_name, r.status, r.created_at "
+        String sql = "SELECT r.request_id, s.skill_name, u.name AS other_name, r.status, r.created_at, "
+                   + "rv.rating AS my_rating "
                    + "FROM exchange_requests r "
                    + "JOIN skills s ON s.skill_id = r.skill_id "
                    + "JOIN users u ON u.user_id = " + (incoming ? "r.learner_id " : "r.teacher_id ")
+                   + "LEFT JOIN reviews rv ON rv.request_id = r.request_id "
                    + "WHERE " + (incoming ? "r.teacher_id" : "r.learner_id") + " = ? "
                    + "ORDER BY r.request_id DESC";
         List<ExchangeRequest> list = new ArrayList<>();
@@ -76,15 +80,16 @@ public class RequestDAO {
                     if (created != null && created.length() > 16) {
                         created = created.substring(0, 16);   // "2026-10-27 21:35"
                     }
+                    int rt = rs.getInt("my_rating");
+                    Integer rating = rs.wasNull() ? null : rt;
                     list.add(new ExchangeRequest(
                             rs.getInt("request_id"), rs.getString("skill_name"),
-                            rs.getString("other_name"), rs.getString("status"), created));
+                            rs.getString("other_name"), rs.getString("status"), created, rating));
                 }
             }
         }
         return list;
     }
-
     // Teacher accepts or rejects. Only the teacher of that request can do it,
     // and only while it is still PENDING.
     public String respond(int requestId, int teacherId, boolean accept) {
