@@ -67,7 +67,8 @@ public class RequestHandlers {
                         .append("\"skillName\":\"").append(RegisterServer.jsonEscape(r.getSkillName())).append("\",")
                         .append("\"otherName\":\"").append(RegisterServer.jsonEscape(r.getOtherName())).append("\",")
                         .append("\"status\":\"").append(RegisterServer.jsonEscape(r.getStatus())).append("\",")
-                        .append("\"createdAt\":\"").append(RegisterServer.jsonEscape(r.getCreatedAt())).append("\"")
+                                                .append("\"createdAt\":\"").append(RegisterServer.jsonEscape(r.getCreatedAt())).append("\",")
+                        .append("\"rating\":").append(r.getRating() == null ? "null" : r.getRating())
                         .append("}");
                 }
                 json.append("]");
