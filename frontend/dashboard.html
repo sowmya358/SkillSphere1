@@ -17,20 +17,21 @@
 
     <main class="dashboard">
 
-               <!-- Welcome message -->
+        <!-- Welcome message -->
         <section class="welcome-banner">
             <h1>Welcome back, <span id="welcomeName">Student</span>!</h1>
             <p>Here's what's happening with your skill exchanges.</p>
         </section>
 
-               <!-- User profile section (real data from login) -->
+        <!-- User profile section (real data from login) -->
         <section class="profile-section card">
             <h2>My Profile</h2>
             <p><strong>Name:</strong> <span id="profileName"></span></p>
             <p><strong>Email:</strong> <span id="profileEmail"></span></p>
             <p><strong>Credits:</strong> <span id="profileCredits"></span></p>
         </section>
-                <!-- Exchange requests (near the top so they are easy to see) -->
+
+        <!-- Exchange requests (near the top so they are easy to see) -->
         <section class="dashboard-grid" style="margin-bottom: 1.5rem;">
             <div class="dashboard-box card">
                 <h3>Incoming Requests</h3>
@@ -43,10 +44,10 @@
             </div>
         </section>
 
-        <!-- Dashboard grid with placeholder sections -->
+        <!-- Skills, search -->
         <section class="dashboard-grid">
 
-                       <div class="dashboard-box card">
+            <div class="dashboard-box card">
                 <h3>My Skills</h3>
                 <ul id="skillList"></ul>
 
@@ -67,7 +68,7 @@
                 </ul>
             </div>
 
-                       <div class="dashboard-box card">
+            <div class="dashboard-box card">
                 <h3>Find Skills</h3>
                 <form id="searchForm">
                     <input type="text" id="searchKeyword" placeholder="Search skills (empty = show all)">
@@ -76,8 +77,6 @@
                 <ul id="searchResults"></ul>
             </div>
 
-            
-                       
         </section>
 
     </main>
