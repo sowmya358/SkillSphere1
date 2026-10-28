@@ -421,6 +421,18 @@ async function loadRequests() {
 }
 
 loadRequests();
+// Refresh the request lists every 5 seconds so new requests appear without a reload
+setInterval(async function () {
+    if (!incomingList || !outgoingList || !getRequestUser()) return;
+    try {
+        const incoming = await fetchRequests("/api/requests/incoming");
+        if (incoming) renderRequests(incomingList, incoming, true);
+        const outgoing = await fetchRequests("/api/requests/outgoing");
+        if (outgoing) renderRequests(outgoingList, outgoing, false);
+    } catch (e) {
+        // stay quiet if the server is briefly unavailable
+    }
+}, 5000);
 // ---------- Complete a session + keep the credit balance fresh ----------
 async function completeRequest(requestId) {
     const user = getRequestUser();
